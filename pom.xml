@@ -4,7 +4,7 @@
 
   <groupId>org.llorllale</groupId>
   <artifactId>liquibase-facade</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -62,12 +62,6 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-dbutils</groupId>
-      <artifactId>commons-dbutils</artifactId>
-      <version>1.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -14,9 +14,6 @@
  */
 package org.llorllale.liquibasefacade;
 
-import org.llorllale.liquibasefacade.Version;
-import org.llorllale.liquibasefacade.LinearProgressionFacade;
-import org.llorllale.liquibasefacade.UndefinedVersion;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -24,8 +21,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import liquibase.resource.ClassLoaderResourceAccessor;
-import org.apache.commons.dbutils.DbUtils;
+import liquibase.resource.ResourceAccessor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -44,6 +42,10 @@ public class LinearProgressionFacadeTest {
   private static Connection connection;
 
   private static List<Version> versions;
+
+  private static Function<Version, String> changesetFileLocator = v -> String.format("test/Version-%d.%d.%d.xml", v.getMajor(), v.getMinor(), v.getRelease());
+
+  private static Function<Version, ResourceAccessor> resourceAccessorGenerator = v -> new ClassLoaderResourceAccessor();
   
   public LinearProgressionFacadeTest() {
   }
@@ -71,8 +73,9 @@ public class LinearProgressionFacadeTest {
   public void testGetCurrentVersion() throws Exception {
     LinearProgressionFacade facade = new LinearProgressionFacade(connection, 
             versions, 
-            v -> String.format("test/Version-%d.%d.%d.xml", v.getMajor(), v.getMinor(), v.getRelease()), 
-            v -> new ClassLoaderResourceAccessor());
+            changesetFileLocator,
+            resourceAccessorGenerator
+    );
     Version expResult = new UndefinedVersion();
     Version result = facade.getCurrentVersion();
     assertEquals(expResult, result);
@@ -90,8 +93,9 @@ public class LinearProgressionFacadeTest {
   public void testApply() throws Exception {
     LinearProgressionFacade facade = new LinearProgressionFacade(connection, 
             versions, 
-            v -> String.format("test/Version-%d.%d.%d.xml", v.getMajor(), v.getMinor(), v.getRelease()), 
-            v -> new ClassLoaderResourceAccessor());
+            changesetFileLocator,
+            resourceAccessorGenerator
+    );
     facade.apply(1,0,0);
     assertTrue(tableExists("Customer", connection));
     assertTrue(columnExists("Customer", "id", connection));
@@ -118,27 +122,83 @@ public class LinearProgressionFacadeTest {
     assertFalse(tableExists("Product", connection));
   }
 
-  private boolean tableExists(String table, Connection conn) throws SQLException {
-    ResultSet r = null;
+  /**
+   * Issue #2: Constructor of LinearProgressionFacade should check parameters for null
+   * An instance of LinearProgressionFacade should be always be assumed to be properly constructed. 
+   * None of the constructor's parameters are intended to be optional. Therefore, null checks 
+   * should be performed and the constructor should fail with an NPE if any of them are missing. 
+   */
+  @Test(expected = NullPointerException.class)
+  public void constructorMustFailIfConnectionIsNull() throws Exception {
+    new LinearProgressionFacade(
+            null, 
+            versions, 
+            changesetFileLocator, 
+            resourceAccessorGenerator
+    );
+  }
 
-    try{
-      DatabaseMetaData meta = conn.getMetaData();
-      r = meta.getTables(null, null, table.toUpperCase(), new String[]{"TABLE"});
+  /**
+   * Issue #2: Constructor of LinearProgressionFacade should check parameters for null
+   * An instance of LinearProgressionFacade should be always be assumed to be properly constructed. 
+   * None of the constructor's parameters are intended to be optional. Therefore, null checks 
+   * should be performed and the constructor should fail with an NPE if any of them are missing. 
+   */
+  @Test(expected = NullPointerException.class)
+  public void constructorMustFailIfVersionsIsNull() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            null,
+            changesetFileLocator, 
+            resourceAccessorGenerator
+    );
+  }
+
+  /**
+   * Issue #2: Constructor of LinearProgressionFacade should check parameters for null
+   * An instance of LinearProgressionFacade should be always be assumed to be properly constructed. 
+   * None of the constructor's parameters are intended to be optional. Therefore, null checks 
+   * should be performed and the constructor should fail with an NPE if any of them are missing. 
+   */
+  @Test(expected = NullPointerException.class)
+  public void constructorMustFailIfChangesetFileLocatorIsNull() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            versions,
+            null,
+            resourceAccessorGenerator
+    );
+  }
+
+  /**
+   * Issue #2: Constructor of LinearProgressionFacade should check parameters for null
+   * An instance of LinearProgressionFacade should be always be assumed to be properly constructed. 
+   * None of the constructor's parameters are intended to be optional. Therefore, null checks 
+   * should be performed and the constructor should fail with an NPE if any of them are missing. 
+   */
+  @Test(expected = NullPointerException.class)
+  public void constructorMustFailIfResourceAccessorGeneratorIsNull() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            versions,
+            changesetFileLocator,
+            null
+    );
+  }
+
+  private boolean tableExists(String table, Connection conn) throws SQLException {
+    DatabaseMetaData meta = conn.getMetaData();
+
+    try(ResultSet r = meta.getTables(null, null, table.toUpperCase(), new String[]{"TABLE"})){
       return r.next();
-    }finally{
-      DbUtils.closeQuietly(r);
     }
   }
 
   private boolean columnExists(String table, String column, Connection conn) throws SQLException {
-    ResultSet r = null;
+    DatabaseMetaData meta = conn.getMetaData();
 
-    try{
-      DatabaseMetaData meta = conn.getMetaData();
-      r = meta.getColumns(null, null, table.toUpperCase(), column.toUpperCase());
+    try(ResultSet r = meta.getColumns(null, null, table.toUpperCase(), column.toUpperCase())){
       return r.next();
-    }finally{
-      DbUtils.closeQuietly(r);
     }
   }
 }
