@@ -29,6 +29,16 @@ public final class UndefinedVersion extends Version {
     return toString();
   }
 
+  /**
+   * Determines whether {@code other} is an instance of {@link UndefinedVersion}.
+   * @param other
+   * @return 
+   * @throws NullPointerException if {@code other} is {@code null}.
+   */
+  public static boolean isUndefinedVersion(Version other){
+    return UndefinedVersion.class.equals(other.getClass());
+  }
+
   @Override
   public String toString(){
     return getClass().getSimpleName();

@@ -165,11 +165,11 @@ public class LinearProgressionFacade {
    * @since 1.0.0
    */
   public int apply(Version targetVersion) throws LiquibaseException {
-    if(targetVersion instanceof UndefinedVersion){
+    if(UndefinedVersion.isUndefinedVersion(targetVersion)){
       throw new IllegalArgumentException("Illegal argument for 'version' - version is undefined.");
     }
 
-    if(targetVersion instanceof NullVersion){
+    if(NullVersion.isNullVersion(targetVersion)){
       throw new IllegalArgumentException("Illegal argument for 'version' - version is 'NullVersion'.");
     }
 

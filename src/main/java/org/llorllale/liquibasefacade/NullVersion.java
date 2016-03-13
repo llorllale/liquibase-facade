@@ -32,6 +32,16 @@ public final class NullVersion extends Version {
     return toString();
   }
 
+  /**
+   * Determines whether {@code other} is an instance of {@link NullVersion}.
+   * @param other
+   * @return 
+   * @throws NullPointerException if {@code other} is {@code null}.
+   */
+  public static boolean isNullVersion(Version other){
+    return NullVersion.class.equals(other.getClass());
+  }
+
   @Override
   public String toString(){
     return getClass().getSimpleName();
