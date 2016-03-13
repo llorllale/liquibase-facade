@@ -203,6 +203,48 @@ public class LinearProgressionFacadeTest {
     );
   }
 
+  /**
+   * Issue #7: LinearProgressionFacade: no validation on input for isUpgrade(Version)and isDowngrade(Version)
+   * The implementation should validate whether the input Version is defined in the list of user-supplied versions.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void applyVersionMustFailIfVersionNotFoundInListOfVersions() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            versions,
+            changesetFileLocator,
+            resourceAccessorGenerator
+    ).apply(Version.of(5, 1, 0));
+  }
+
+  /**
+   * Issue #7: LinearProgressionFacade: no validation on input for isUpgrade(Version)and isDowngrade(Version)
+   * The implementation should validate whether the input Version is defined in the list of user-supplied versions.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void isUpgradeMustFailIfVersionNotFoundInListOfVersions() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            versions,
+            changesetFileLocator,
+            resourceAccessorGenerator
+    ).isUpgrade(Version.of(5, 1, 0));
+  }
+
+  /**
+   * Issue #7: LinearProgressionFacade: no validation on input for isUpgrade(Version)and isDowngrade(Version)
+   * The implementation should validate whether the input Version is defined in the list of user-supplied versions.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void isDowngradeMustFailIfVersionNotFoundInListOfVersions() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            versions,
+            changesetFileLocator,
+            resourceAccessorGenerator
+    ).isDowngrade(Version.of(5, 1, 0));
+  }
+
   private boolean tableExists(String table, Connection conn) throws SQLException {
     DatabaseMetaData meta = conn.getMetaData();
 

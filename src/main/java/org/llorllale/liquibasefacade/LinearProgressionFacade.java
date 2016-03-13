@@ -96,10 +96,12 @@ public class LinearProgressionFacade {
    * @param version a version that must be included in the list of reference versions.
    * @return whether the input {@link Version version} is an 'upgrade' over the database schema's current version.
    * @throws LiquibaseException wrapping any underlying SQLException
+   * @throws IllegalArgumentException if {@code version} is not included in list of {@code versions}.
    * @see #getCurrentVersion() 
    * @since 1.0.0
    */
   public boolean isUpgrade(Version version) throws LiquibaseException {
+    errorIfInvalidInput(version);
     return getCurrentVersion().isLessThan(version);
   }
 
@@ -108,10 +110,12 @@ public class LinearProgressionFacade {
    * @param version a version that must be part of the list of reference versions.
    * @return whether the input {@link Version version} is a 'downgrade' under the database schema's current version.
    * @throws LiquibaseException wrapping any underlying SQLException
+   * @throws IllegalArgumentException if {@code version} is not included in list of {@code versions}.
    * @see #getCurrentVersion() 
    * @since 1.0.0
    */
   public boolean isDowngrade(Version version) throws LiquibaseException {
+    errorIfInvalidInput(version);
     return getCurrentVersion().isGreaterThan(version);
   }
 
@@ -122,6 +126,8 @@ public class LinearProgressionFacade {
    * @param release the point/bugfix release version number
    * @return the number of changes applied
    * @throws LiquibaseException thrown by liquibase, or wrapping any underlying SQLException
+   * @throws IllegalArgumentException as per the rules in {@link Version#of(int, int, int)} or if 
+   * the values define a {@link Version} that is not included in list of {@code versions}.
    * @see #apply(org.llorllale.liquibasefacade.Version) 
    * @since 1.0.0
    */
@@ -162,21 +168,13 @@ public class LinearProgressionFacade {
    * @param targetVersion applies the changes required to bring the schema's version to the given {@code targetVersion}.
    * @return the number of changes (changeSets) applied
    * @throws LiquibaseException thrown by liquibase, or wrapping any underlying SQLException
+   * @throws IllegalArgumentException if {@code targetVersion} is not included in list of {@code versions}.
+   * @throws NullPointerException if {@code targetVersion} is {@code null}.
+   * @see #LinearProgressionFacade(java.sql.Connection, java.util.List, java.util.function.Function, java.util.function.Function) 
    * @since 1.0.0
    */
   public int apply(Version targetVersion) throws LiquibaseException {
-    if(UndefinedVersion.isUndefinedVersion(targetVersion)){
-      throw new IllegalArgumentException("Illegal argument for 'version' - version is undefined.");
-    }
-
-    if(NullVersion.isNullVersion(targetVersion)){
-      throw new IllegalArgumentException("Illegal argument for 'version' - version is 'NullVersion'.");
-    }
-
-    if(!versions.contains(targetVersion)){
-      throw new IllegalArgumentException(String.format("Illegal argument for 'version' - version not found in list of versions. Version: %s List of versions: %s", targetVersion, versions));
-    }
-
+    errorIfInvalidInput(targetVersion);
     int changes = 0;
 
     if(isDowngrade(targetVersion)){
@@ -239,6 +237,31 @@ public class LinearProgressionFacade {
       }catch(Exception e){
         //ignore
       }
+    }
+  }
+
+  /**
+   * Intended for use in validating user input
+   * @param version 
+   * @throws IllegalArgumentException 
+   */
+  private void errorIfInvalidInput(Version version){
+    if(UndefinedVersion.isUndefinedVersion(version)){
+      throw new IllegalArgumentException("Illegal argument for 'version' - version is 'UndefinedVersion'.");
+    }
+
+    if(NullVersion.isNullVersion(version)){
+      throw new IllegalArgumentException("Illegal argument for 'version' - version is 'NullVersion'.");
+    }
+
+    if(!versions.contains(version)){
+      throw new IllegalArgumentException(
+              String.format(
+                      "Illegal argument for 'version' - version not found in list of versions. Version: %s List of versions: %s", 
+                      version, 
+                      versions
+              )
+      );
     }
   }
 
