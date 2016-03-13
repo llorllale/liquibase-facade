@@ -199,7 +199,7 @@ public class LinearProgressionFacadeTest {
             connection, 
             new ArrayList<>(),
             changesetFileLocator,
-            null
+            resourceAccessorGenerator
     );
   }
 
