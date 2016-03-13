@@ -19,6 +19,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -181,6 +182,22 @@ public class LinearProgressionFacadeTest {
     new LinearProgressionFacade(
             connection, 
             versions,
+            changesetFileLocator,
+            null
+    );
+  }
+
+  /**
+   * Issue #3: LinearProgressionFacade should check for empty lists in constructor
+   * There is no conceivable use case where the LinearProgressionFacade would be 
+   * used with an empty list. Therefore, the constructor should fail if an empty 
+   * list is supplied.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void constructorMustFailIfVersionsIsEmpty() throws Exception {
+    new LinearProgressionFacade(
+            connection, 
+            new ArrayList<>(),
             changesetFileLocator,
             null
     );

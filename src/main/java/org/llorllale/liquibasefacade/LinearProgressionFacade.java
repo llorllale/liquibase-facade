@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -54,11 +55,19 @@ public class LinearProgressionFacade {
    * @param changesetFileLocator A function that returns the path to where the liquibase changeset file is located for a given version.
    * @param resourceAccessorGenerator A function that returns the {@code ResourceAccessor} used to fetch a given version's changeset file.
    * @throws NullPointerException if any of the parameters are {@code null}
+   * @throws IllegalArgumentException if {@code versions} is empty
    * @since 1.0.0
    */
-  public LinearProgressionFacade(Connection connection, List<Version> versions, Function<Version, String> changesetFileLocator, Function<Version, ResourceAccessor> resourceAccessorGenerator){
+  public LinearProgressionFacade(
+          Connection connection, 
+          List<Version> versions, 
+          Function<Version, String> changesetFileLocator, 
+          Function<Version, ResourceAccessor> resourceAccessorGenerator
+  ){
     this.connection = Objects.requireNonNull(connection, "null connection.");
-    this.versions = new ArrayList<>(Objects.requireNonNull(versions, "null version list."));
+    this.versions = Optional.of(new ArrayList<>(Objects.requireNonNull(versions, "null version list.")))
+            .filter(v -> v.size() > 0)
+            .orElseThrow(() -> new IllegalArgumentException("empty version list."));
     this.changesetFileLocator = Objects.requireNonNull(changesetFileLocator, "null changesetFileLocator function.");
     this.resourceAccessorGenerator = Objects.requireNonNull(resourceAccessorGenerator, "null resourceAccessorGenerator function.");
   }
